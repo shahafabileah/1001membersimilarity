@@ -1,12 +1,47 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-  <title>Testing</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Similarity Calculator</title>
+  <style>
+    /* Add basic styles */
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+    }
+
+    #spinner {
+      display: none;
+    }
+  </style>
 </head>
 
 <body>
-  <h1>Testing</h1>
-  <p>1, 2, 3, 4...</p>
+
+  <h1>Person-to-Person Similarity Calculator</h1>
+
+  <p>Enter the member IDs (it would be better to enter a group name!):</p>
+
+  <textarea id="membersInput" placeholder="Enter member IDs, one per line...">651f4b728a53974fd9ab540d
+651f4c6e8a53974fd9ab55e3
+651f4ceb8a53974fd9ab569c
+651f59418a53974fd9ab677b
+651f4df38a53974fd9ab5815
+652723be3fa9e477771f022a</textarea>
+  <button id="goButton">Go</button>
+
+  <div id="spinner">Loading...</div>
+
+  <h2>Results</h2>
+  <pre id="results"></pre>
+
+  <script src="app.js"></script>
 </body>
 
 </html>
