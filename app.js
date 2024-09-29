@@ -29,7 +29,7 @@ document.getElementById('goButton').addEventListener('click', async () => {
 async function getGroupMembers(groupName) {
   const apiUrl = `https://1001albumsgenerator.com/api/v1/groups/${groupName}`;
 
-  const response = await fetchWithRetry(apiUrl, 5);
+  const response = await fetchWithRetry(apiUrl, 9);
 
   // Return the "members" key from the response object
   return response.members;
@@ -40,7 +40,7 @@ async function getAlbumRatings(memberId) {
   const apiUrl = `https://1001albumsgenerator.com/api/v1/projects/${memberId}`;
 
   // Fetch the data using the fetchWithRetry function
-  const response = await fetchWithRetry(apiUrl, 5);
+  const response = await fetchWithRetry(apiUrl, 9);
 
   console.log(response);
 
@@ -91,6 +91,8 @@ async function fetchWithRetry(url, maxRetries) {
       await delay(backoffDelay);
     }
   }
+
+  throw new Error(`Max retries reached for URL: ${url}`);
 }
 
 // Function to compute the Pearson similarity between all group members
