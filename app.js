@@ -38,7 +38,25 @@ async function getGroupMembers(groupName) {
 // Function to fetch album ratings for each member
 async function getAlbumRatings(memberId) {
   const apiUrl = `https://1001albumsgenerator.com/api/v1/projects/${memberId}`;
-  return await fetchWithRetry(apiUrl, 5);
+
+  // Fetch the data using the fetchWithRetry function
+  const response = await fetchWithRetry(apiUrl, 5);
+
+  // Extract the "history" key from the response
+  const history = response.history;
+
+  // Create an object to store album ratings using the album's spotifyId as the key
+  const albumRatings = {};
+
+  history.forEach(item => {
+    // Ensure album and rating exist in the response item
+    if (item.album && item.album.spotifyId && item.rating !== undefined) {
+      albumRatings[item.album.spotifyId] = item.rating;
+    }
+  });
+
+  // Return the albumRatings object
+  return albumRatings;
 }
 
 // Function to retry requests with exponential backoff
