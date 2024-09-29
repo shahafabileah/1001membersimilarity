@@ -42,6 +42,8 @@ async function getAlbumRatings(memberId) {
   // Fetch the data using the fetchWithRetry function
   const response = await fetchWithRetry(apiUrl, 5);
 
+  console.log(response);
+
   // Extract the "history" key from the response
   const history = response.history;
 
