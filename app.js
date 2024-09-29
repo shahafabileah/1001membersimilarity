@@ -1,15 +1,20 @@
 document.getElementById('goButton').addEventListener('click', async () => {
-  // Get member IDs from the textarea
-  const memberIds = document.getElementById('membersInput').value.trim().split('\n').map(id => id.trim());
+  // Get group name from the input field
+  const groupName = document.getElementById('groupNameInput').value.trim();
+
+  if (!groupName) {
+    alert('Please enter a group name.');
+    return;
+  }
 
   // Show the spinner
   document.getElementById('spinner').style.display = 'block';
   document.getElementById('results').textContent = '';
 
-  // Fetch and process the member data
+  // Fetch and process the group data
   try {
-    const members = await getMembersData(memberIds);
-    const similarities = computeSimilarities(members);
+    const members = await getGroupMembers(groupName);
+    const similarities = await computeSimilarities(members);
     displayResults(similarities);
   } catch (error) {
     console.error(error);
@@ -20,47 +25,76 @@ document.getElementById('goButton').addEventListener('click', async () => {
   document.getElementById('spinner').style.display = 'none';
 });
 
-// Function to fetch album ratings for each member directly from the 1001albumsgenerator API
-async function getMembersData(memberIds) {
-  const members = [];
-  for (const id of memberIds) {
-    const albumRatings = await getAlbumRatings(id);
-    members.push({ id, albumRatings });
-  }
-  return members;
+// Function to fetch group members via the API and return only the "members" key
+async function getGroupMembers(groupName) {
+  const apiUrl = `https://1001albumsgenerator.com/api/v1/groups/${groupName}`;
+
+  const response = await fetchWithRetry(apiUrl, 5);
+
+  // Return the "members" key from the response object
+  return response.members;
 }
 
-// Function to fetch album ratings via the API (no proxy)
+// Function to fetch album ratings for each member
 async function getAlbumRatings(memberId) {
   const apiUrl = `https://1001albumsgenerator.com/api/v1/projects/${memberId}`;
-  const response = await fetch(apiUrl);
-
-  if (!response.ok) throw new Error(`Failed to fetch data for member ${memberId}`);
-
-  const data = await response.json();
-
-  const albumRatings = {};
-  data.history.forEach(item => {
-    if (item.album && item.rating) {
-      albumRatings[item.album.spotifyId] = item.rating;
-    }
-  });
-  return albumRatings;
+  return await fetchWithRetry(apiUrl, 5);
 }
 
-// Function to compute the Pearson similarity
-function computeSimilarities(members) {
-  const similarities = {};
-  members.forEach(member1 => {
-    const scores = {};
-    members.forEach(member2 => {
-      if (member1.id !== member2.id) {
-        const score = computePearsonCorrelation(member1.albumRatings, member2.albumRatings);
-        scores[member2.id] = score;
+// Function to retry requests with exponential backoff
+async function fetchWithRetry(url, maxRetries) {
+  let attempt = 0;
+  const delay = ms => new Promise(res => setTimeout(res, ms));
+
+  while (attempt < maxRetries) {
+    try {
+      const response = await fetch(url);
+      if (response.ok) {
+        return await response.json();
+      } else if (response.status === 429) {
+        // Too Many Requests, backoff and retry
+        attempt++;
+        const backoffDelay = Math.pow(2, attempt) * 100; // Exponential backoff
+        console.log(`Attempt ${attempt}: Waiting ${backoffDelay}ms before retrying...`);
+        await delay(backoffDelay);
+      } else {
+        throw new Error(`Request failed with status: ${response.status}`);
       }
+    } catch (error) {
+      if (attempt === maxRetries) {
+        throw new Error(`Max retries reached for URL: ${url}`);
+      }
+      attempt++;
+      const backoffDelay = Math.pow(2, attempt) * 100;
+      console.log(`Attempt ${attempt}: Waiting ${backoffDelay}ms before retrying...`);
+      await delay(backoffDelay);
+    }
+  }
+}
+
+// Function to compute the Pearson similarity between all group members
+async function computeSimilarities(members) {
+  const memberData = [];
+
+  for (const member of members) {
+    const albumRatings = await getAlbumRatings(member.id);
+    memberData.push({
+      name: member.name,
+      albumRatings
     });
-    similarities[member1.id] = scores;
-  });
+  }
+
+  const similarities = {};
+  for (const member1 of memberData) {
+    const scores = {};
+    for (const member2 of memberData) {
+      if (member1.name !== member2.name) {
+        const score = computePearsonCorrelation(member1.albumRatings, member2.albumRatings);
+        scores[member2.name] = score;
+      }
+    }
+    similarities[member1.name] = scores;
+  }
   return similarities;
 }
 

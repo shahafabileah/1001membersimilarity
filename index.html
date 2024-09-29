@@ -6,14 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Similarity Calculator</title>
   <style>
-    /* Add basic styles */
     body {
       font-family: Arial, sans-serif;
     }
 
-    textarea {
+    input[type=text] {
       width: 100%;
-      height: 100px;
+      padding: 10px;
+      margin: 10px 0;
     }
 
     #spinner {
@@ -26,14 +26,7 @@
 
   <h1>Person-to-Person Similarity Calculator</h1>
 
-  <p>Enter the member IDs (it would be better to enter a group name!):</p>
-
-  <textarea id="membersInput" placeholder="Enter member IDs, one per line...">651f4b728a53974fd9ab540d
-651f4c6e8a53974fd9ab55e3
-651f4ceb8a53974fd9ab569c
-651f59418a53974fd9ab677b
-651f4df38a53974fd9ab5815
-652723be3fa9e477771f022a</textarea>
+  <input type="text" id="groupNameInput" placeholder="Enter group name..." value="sportsball-2-electric-boogaloo" />
   <button id="goButton">Go</button>
 
   <div id="spinner">Loading...</div>
