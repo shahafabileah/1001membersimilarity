@@ -70,6 +70,7 @@ async function fetchWithRetry(url, maxRetries) {
     try {
       const response = await fetch(url);
       if (response.ok) {
+        console.log(`Request successful for URL: ${url}.  Response: ${response.status} ${response.body}`);
         return await response.json();
       } else if (response.status === 429) {
         // Too Many Requests, backoff and retry
