@@ -69,8 +69,14 @@ async function fetchAndProcessData(groupName) {
   }
 }
 
+function displayStatus(status) {
+  document.getElementById('statusMessage').textContent = status;
+}
+
 // Function to fetch group members via the API and return only the "members" key
 async function getGroupMembers(groupName) {
+  displayStatus('Fetching group members...');
+
   const apiUrl = `https://1001albumsgenerator.com/api/v1/groups/${groupName}`;
 
   const response = await fetchWithRetry(apiUrl, 9);
@@ -85,19 +91,18 @@ async function getAlbumRatings(memberId) {
 
   try {
     // Try to fetch the file from the local directory (relative path)
-    const response = await fetch(localFileUrl);
+    // const response = await fetch(localFileUrl);
 
-    if (response.ok) {
-      // If the file is found, parse and return the JSON data
-      const jsonData = await response.json();
-      return extractAlbumRatings(jsonData);
-    } else {
-      // If the file doesn't exist, fall back to fetching from the API
-      console.log(`Local file not found for member ${memberId}, fetching from API...`);
-      const apiUrl = `https://1001albumsgenerator.com/api/v1/projects/${memberId}`;
-      const apiResponse = await fetchWithRetry(apiUrl, 5);
-      return extractAlbumRatings(apiResponse);
-    }
+    // if (response.ok) {
+    //   // If the file is found, parse and return the JSON data
+    //   const jsonData = await response.json();
+    //   return extractAlbumRatings(jsonData);
+    // } else {
+    // If the file doesn't exist, fall back to fetching from the API
+    const apiUrl = `https://1001albumsgenerator.com/api/v1/projects/${memberId}`;
+    const apiResponse = await fetchWithRetry(apiUrl, 5);
+    return extractAlbumRatings(apiResponse);
+    // }
   } catch (error) {
     console.error('Error fetching album ratings:', error);
   }
@@ -124,7 +129,14 @@ async function fetchWithRetry(url, maxRetries) {
 
   while (attempt < maxRetries) {
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          // API key for the 1001 Albums Generator API, allows 1 request per second.
+          'x-api-access': '4ansehnyaMjwnfozhmalksqkpKncaeeMekdCzcKnNmAaJabsuRe4jkdlAa8mannn'
+        }
+      });
       if (response.ok) {
         console.log(`Request successful for URL: ${url}.  Response: ${response.status} ${response.body}`);
         return await response.json();
@@ -156,6 +168,7 @@ async function computeSimilarities(members) {
   const memberData = [];
 
   for (const member of members) {
+    displayStatus(`Fetching album ratings for ${member.name}...`);
     const albumRatings = await getAlbumRatings(member.id);
     memberData.push({
       name: member.name,
