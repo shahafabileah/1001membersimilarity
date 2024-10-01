@@ -54,7 +54,7 @@ function fetchAndDisplayResults(groupName) {
 
     // Step 4: Hide the spinner and show the results block
     hideSpinnerAndShowResults();
-  }, 1000); // Ensures the fetch happens after the UI has had a chance to update
+  }, 1); // Ensures the fetch happens after the UI has had a chance to update
 }
 
 // Function to fetch and process the data
