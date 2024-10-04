@@ -176,8 +176,16 @@ async function computeSimilarities(members) {
     });
   }
 
-  // Only look at members who have rated at least one album.
-  const filteredMemberData = memberData.filter(member => Object.keys(member.albumRatings).length > 0);
+  // Only look at members who have rated at least one album with a real rating (not "did not rate").
+  const filteredMemberData = memberData.map(member => {
+    const validAlbumRatings = Object.fromEntries(
+      Object.entries(member.albumRatings).filter(([albumId, rating]) => {
+        return typeof rating === 'number';
+      })
+    );
+
+    return { ...member, albumRatings: validAlbumRatings };
+  }).filter(member => Object.keys(member.albumRatings).length > 0);
 
   const similarities = {};
   for (const member1 of filteredMemberData) {
